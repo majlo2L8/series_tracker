@@ -4,6 +4,8 @@
   declare -a MYFIELD=(
 # TEST
 # ANIMATED
+"Invincible"
+"Krapopolis"
 "Love, Death & Robots"
 "Genndy Tartakovsky’s Primal"
 "Farzar"
@@ -66,6 +68,10 @@
 "The Flash"
 "Peacemaker"
 # LIVE ACTION
+"The Boys"
+"Gen V"
+"The Last of Us"
+"Monarch: Legacy of Monsters"
 "Only Murders in the Building"
 "Severance"
 "Barry"
