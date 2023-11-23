@@ -1,12 +1,14 @@
 #!/bin/bash
 #Name:      series.sh
-#Version:   2.00
+#Version:   3.00
 #Author:    Mario Rybar
 #Created:   16.04.2018
-#Updated:   11.02.2022
+#Updated:   23.11.2023 - Added episode name
 #===================================================================
-# Enable debug
-#set -x
+# Enable debug logging to file
+#exec > >(tee -ia debug_output.txt)
+#exec 2>&1
+#set -xv
 
   # VARIABLES
   cd -- "$(dirname "$0")"
@@ -14,7 +16,7 @@
   SCRIPT_DIR=$(dirname "$0")
   SCRIPT_NAME=$(basename "$0")
   WORKLOG="${WDIR}/WORKS.log"
-  LOG="${WDIR}/logs/$(date +"%d%m%Y")_TV_series.log"
+  LOG="${WDIR}/logs/$(date +"%m-%d-%Y")_TV_series.log"
   #GENERAL="${WDIR}/general.txt"
   TODAY="Today.s\sTV\sEpisodes\:"
   TOMORROW="Tomorrow.s\sTV\sEpisodes\:"
@@ -24,6 +26,10 @@
   #cd /home/majlo/Documents/Script/series/
   . ./preferences.sh
 
+  # If log folder does not exist, create it
+  if [[ ! -d "${WDIR}/logs" ]]; then
+    mkdir "${WDIR}/logs"
+  fi
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -60,7 +66,7 @@ cleaning() {
 get_that_series() {
   # Get page #1
   curl https://next-episode.net/recent/ > ${WORKLOG}
-  echo -e "\n*TV SERIES log $(date +%d-"%m-%Y") > ${LOG}" > ${LOG}
+  echo -e "\n*TV SERIES log $(date +%m-"%d-%Y") > ${LOG}" > ${LOG}
   #echo "_______________________________________________________________________________________________" >> ${LOG}
   #echo -e "..............................................................................................." >> ${LOG}
 }
@@ -90,10 +96,8 @@ getEpisodes() {
           #echo "-----------------------------------------" >> ${LOG}
         fi
 
-
+        # Get season+episode numbers
         EPISODE=$(cat ${WORKLOG} | grep -a -A 2 "${1}" | grep -Po "(?<=$i\<\/a\>\<\/h3\>\&nbsp\;\-\&nbsp\;)\d{1,2}x\d{1,2}(?=\s\-\s\<span)")
-        # Add TV show name
-        #echo "${EPISODE}" >> ${LOG}
         # Get season number
         SEASON=$(echo "${EPISODE}" | cut -d'x' -f1)
         # if season number less than 10
@@ -103,9 +107,18 @@ getEpisodes() {
           EPISODE=$(echo "S${EPISODE}");
         fi
         EPISODE=$(echo "${EPISODE}" | sed -e 's/x/E/g')
-        # generate TV Show + S00E00
-        echo "$i ${EPISODE}" >> ${LOG}
+        
+        # Get episode name
+        EPISODE_NAME=$(cat ${WORKLOG} | grep -a -A 2 "${1}" | grep -Po "(?<=$i\<\/a\>\<\/h3\>\&nbsp\;\-\&nbsp\;\dx\d\d\s-\s\<span\sstyle=\"color:#\d{6}\"\>)[A-Za-z0-9|\s]*(?=\<\/span\>\&nbsp;\&nbsp)")
 
+        # generate TV Show + S00E00 and add to the log
+        echo "$i ${EPISODE}" >> ${LOG}
+        # check if episode name exist
+        echo "${EPISODE_NAME}" | grep -iE "(episode|TBA|TBD)" &>1
+        # Add to the log if exist
+        if [[ ! "$?" == 0 ]]; then
+          echo " - ${EPISODE_NAME}" >> ${LOG}
+        fi
         echo -e "" >> ${LOG}
 
 
