@@ -3,7 +3,7 @@
 #Version:   3.00
 #Author:    Mario Rybar
 #Created:   16.04.2018
-#Updated:   23.11.2023 - Added episode name
+#Updated:   23.11.2023 - Added episode name if exist
 #===================================================================
 # Enable debug logging to file
 #exec > >(tee -ia debug_output.txt)
@@ -113,11 +113,14 @@ getEpisodes() {
 
         # generate TV Show + S00E00 and add to the log
         echo "$i ${EPISODE}" >> ${LOG}
-        # check if episode name exist
-        echo "${EPISODE_NAME}" | grep -iE "(episode|TBA|TBD)" &>1
-        # Add to the log if exist
-        if [[ ! "$?" == 0 ]]; then
-          echo " - ${EPISODE_NAME}" >> ${LOG}
+        
+        if [[ `echo "${EPISODE_NAME}" | wc -c` -ge 2 ]]; then
+          # check if episode name exist
+          echo "${EPISODE_NAME}" | grep -iE "(episode|TBA|TBD)" &>1
+          # Add to the log if exist
+          if [[ "$?" != 0 ]]; then
+            echo " - ${EPISODE_NAME}" >> ${LOG}
+          fi
         fi
         echo -e "" >> ${LOG}
 
